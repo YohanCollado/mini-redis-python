@@ -1,9 +1,21 @@
 import socket
+import time
 
 HOST = "127.0.0.1" # local host
 PORT = 6379 # redis default port
 
 store = {} # our db so far
+expirations = {}
+
+def is_expired(key):
+    if key not in expirations:
+        return False
+    
+    if time.time() > expirations[key]:
+        del store[key]
+        del expirations[key]
+        return True
+    return False
 
 # we create something like redis, a giant in memory key value store
 # stores value in memory for faster access
@@ -36,10 +48,11 @@ def handle_command(command): # brain of the server
 
         key = parts[1]
 
-        if key in store:
+        if key in store and not is_expired(key):
             return store[key]
         else:
             return "NULL"
+        
     elif cmd == "DEL":
         if len(parts) != 2:
             return "ERROR: DEL needs key"
@@ -48,9 +61,25 @@ def handle_command(command): # brain of the server
 
         if key in store:
             del store[key]
+        
+            if key in expirations:
+                del expirations[key]
             return "DELETED"
-        else: 
+    
+    
+    elif cmd == "EXPIRE":
+        if len(parts) != 3:
+            return "ERROR: EXPIRE needs key and seconds"
+        
+        key = parts[1]
+
+        if key not in store:
             return "NULL"
+
+        seconds = int(parts[2])
+        expirations[key] = time.time() + seconds
+
+        return "OK"
 
     elif cmd == "PING": # health check for our kvs
         return "PONG"

@@ -114,7 +114,3 @@ This project explores several fundamental systems concepts:
 * Publish/Subscribe messaging
 * Replication
 * Distributed clustering
-
-## Motivation
-
-Redis is one of the most widely used databases and caching systems in modern software infrastructure. Building a simplified version from scratch provides hands-on experience with the underlying concepts used in databases, distributed systems, and backend services.
